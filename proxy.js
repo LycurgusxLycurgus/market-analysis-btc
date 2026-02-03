@@ -78,6 +78,29 @@ http.createServer(async (req, res) => {
       return sendFile(res, path.join(__dirname, "app.js"), "text/javascript; charset=utf-8");
     }
 
+    if (u.pathname === "/btc") {
+      const timespan = u.searchParams.get("timespan") || "10years";
+      const sampled = u.searchParams.get("sampled") || "false";
+      const params = new URLSearchParams({
+        timespan,
+        format: "json",
+        sampled,
+        cors: "true",
+      });
+      const btcUrl = `https://api.blockchain.info/charts/market-price?${params.toString()}`;
+
+      const r = await fetch(btcUrl);
+      const text = await r.text();
+      if (!r.ok) return sendJson(res, r.status, { error: "BTC request failed", status: r.status, body: text });
+
+      res.writeHead(200, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "no-store",
+      });
+      return res.end(text);
+    }
+
     if (u.pathname !== "/fred") return sendJson(res, 404, { error: "Not found" });
 
     const series_id = u.searchParams.get("series_id") || "M2SL";
@@ -119,5 +142,5 @@ http.createServer(async (req, res) => {
     sendJson(res, 500, { error: "Proxy error", message: String(e?.message || e) });
   }
 }).listen(PORT, () => {
-  console.log(`FRED proxy running on http://localhost:${PORT}/fred`);
+  console.log(`Proxy running on http://localhost:${PORT} (endpoints: /fred, /btc)`);
 });

@@ -77,8 +77,19 @@ function assertChartResponse(payload) {
   return true;
 }
 
+function defaultBtcProxyUrl() {
+  if (typeof window === "undefined") return "http://localhost:8787/btc";
+  const origin = window?.location?.origin;
+  const host = window?.location?.hostname || "";
+  const port = window?.location?.port || "";
+  if (!origin || origin === "null") return "http://localhost:8787/btc";
+  const isLocalhost = host === "localhost" || host === "127.0.0.1";
+  if (isLocalhost && port && port !== "8787") return "http://localhost:8787/btc";
+  return `${origin}/btc`;
+}
+
 async function getBtcMarketPriceDaily({ timespan = "10years", sampled = false, signal, log } = {}) {
-  const base = "https://api.blockchain.info/charts/market-price";
+  const base = defaultBtcProxyUrl();
   const params = new URLSearchParams({
     timespan,
     format: "json",
