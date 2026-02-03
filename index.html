@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BTC Sentiment</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='%23e0e0e0'/></svg>">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -260,7 +261,7 @@
       container: document.getElementById("midTermContainer"),
       text: document.getElementById("midTermText"),
       note: document.getElementById("midTermNote"),
-      proxyUrl: "http://localhost:8787/fred",
+      proxyUrl: "/fred",
       onResult: (result) => {
         midState = result.signal;
         updateOverallStatus();
