@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BTC Sentiment</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-void: #050505;
+      --bg-card: #0f0f0f;
+      --bg-panel: #1a1a1a;
+      --text-main: #e0e0e0;
+      --text-muted: #666666;
+      --signal-bull: #00ff94;
+      --signal-bear: #ff003c;
+      --signal-neutral: #333333;
+      --glow-bull: 0 0 20px rgba(0, 255, 148, 0.15);
+      --glow-bear: 0 0 20px rgba(255, 0, 60, 0.15);
+      --radius-lg: 2px;
+      --radius-sm: 2px;
+      --font-display: "Space Grotesk", sans-serif;
+      --font-tech: "Space Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-display);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid #222;
+      border-radius: var(--radius-lg);
+      padding: 2px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    .card-inner {
+      background: var(--bg-void);
+      border: 1px solid #222;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #222;
+      padding-bottom: 20px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--text-muted);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+
+    .timeline-label {
+      font-family: var(--font-tech);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .sentiment-box {
+      position: relative;
+    }
+
+    .sentiment-display {
+      font-size: 48px;
+      line-height: 1;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+    .sentiment-sub {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 300;
+      opacity: 0.8;
+    }
+
+    .state-bullish .sentiment-display {
+      color: var(--signal-bull);
+      text-shadow: var(--glow-bull);
+    }
+    .state-bearish .sentiment-display {
+      color: var(--signal-bear);
+      text-shadow: var(--glow-bear);
+    }
+    .state-loading .sentiment-display {
+      color: var(--text-muted);
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+
+    .state-error .sentiment-display {
+      color: #ffb000;
+      text-shadow: none;
+    }
+
+    .mid-term-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px dashed #222;
+    }
+
+    .legal {
+      margin-top: 10px;
+      font-size: 10px;
+      color: #333;
+      text-align: center;
+      font-family: var(--font-tech);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <main class="card">
+      <div class="card-inner">
+
+        <header>
+          <h1>Market Sentiment (BTC)</h1>
+          <div class="live-dot" id="systemStatus"></div>
+        </header>
+
+        <section id="shortTermContainer" class="state-loading">
+          <span class="timeline-label">Short Term (1-12 Weeks)</span>
+
+          <div class="sentiment-box">
+            <div class="sentiment-display" id="sentimentText">INITIALIZING...</div>
+            <div class="sentiment-sub" id="shortTermNote">Based on Absolute Price Oscillator Momentum</div>
+          </div>
+        </section>
+
+        <section id="midTermContainer" class="mid-term-section state-loading">
+          <span class="timeline-label">Mid Term (3-6 Months)</span>
+
+          <div class="sentiment-box">
+            <div class="sentiment-display" id="midTermText">INITIALIZING...</div>
+            <div class="sentiment-sub" id="midTermNote">Based on liquidity injection/withdrawal</div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <div class="legal">
+      Not Financial Advice.
+    </div>
+  </div>
+
+  <script type="module">
+    import { initShortTermSentiment, initMidTermSignalAuto } from "./app.js";
+
+    const statusDot = document.getElementById("systemStatus");
+    let shortState = "loading";
+    let midState = "loading";
+
+    function setStatus(color) {
+      statusDot.style.backgroundColor = color;
+    }
+
+    function updateOverallStatus() {
+      const completeShort = shortState === "bullish" || shortState === "bearish";
+      const completeMid = midState === "bullish" || midState === "bearish";
+
+      if (completeShort && completeMid) {
+        if (shortState === midState) {
+          setStatus(shortState === "bullish" ? "var(--signal-bull)" : "var(--signal-bear)");
+        } else {
+          setStatus("#ffb000");
+        }
+        return;
+      }
+
+      if (completeShort) {
+        setStatus(shortState === "bullish" ? "var(--signal-bull)" : "var(--signal-bear)");
+        return;
+      }
+
+      setStatus("var(--text-muted)");
+    }
+
+    initShortTermSentiment({
+      container: document.getElementById("shortTermContainer"),
+      text: document.getElementById("sentimentText"),
+      status: statusDot,
+      note: document.getElementById("shortTermNote"),
+      onResult: (state) => {
+        shortState = state;
+        updateOverallStatus();
+      },
+      onError: () => {
+        shortState = "error";
+        updateOverallStatus();
+      },
+    });
+
+    initMidTermSignalAuto({
+      container: document.getElementById("midTermContainer"),
+      text: document.getElementById("midTermText"),
+      note: document.getElementById("midTermNote"),
+      proxyUrl: "http://localhost:8787/fred",
+      onResult: (result) => {
+        midState = result.signal;
+        updateOverallStatus();
+      },
+      onError: () => {
+        midState = "error";
+        updateOverallStatus();
+      },
+    });
+  </script>
+</body>
+</html>
