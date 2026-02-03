@@ -575,7 +575,7 @@ export async function initMidTermSignalAuto({
     if (ui.note && detail) ui.note.textContent = detail;
   };
 
-  setUi("loading", "Based on liquidity injection/withdrawal (M2 YoY).");
+  setUi("loading", "Based on liquidity injection/withdrawal");
 
   try {
     const proxyValue = proxyUrl?.trim() || "";
