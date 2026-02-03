@@ -633,7 +633,7 @@ export async function initMidTermSignalAuto({
     };
 
     log.info("Computed mid-term signal", result);
-    setUi(result.signal, "Based on liquidity injection/withdrawal (M2 YoY).");
+    setUi(result.signal, "Based on liquidity injection/withdrawal");
     onResult?.(result);
   } catch (err) {
     const normalized = isAppError(err)
